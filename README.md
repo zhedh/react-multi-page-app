@@ -17,6 +17,18 @@ react-multi-page-app 是一个基于 webpack5 搭建的 react 多页面应用。
 
 ## 快速上手
 
+**安装依赖**
+
+```bash
+yarn install
+```
+
+**打包**
+
+```bash
+webpack
+```
+
 ## 简易搭建流程
 
 ### npm 初始化
