@@ -17,7 +17,7 @@ react-multi-page-app 是一个基于 webpack5 搭建的 react 多页面应用。
 
 ## 快速上手
 
-## 搭建流程
+## 简易搭建流程
 
 ### npm 初始化
 
@@ -219,6 +219,77 @@ webpack
 └── page2
     ├── index.html
     └── index.js
+```
+
+### 完整的配置文件
+
+webpack.config.js
+
+```js
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+
+module.exports = {
+  entry: {
+    page1: "./src/pages/page1/index.jsx",
+    page2: "./src/pages/page2/index.jsx",
+  },
+  output: {
+    path: path.resolve(__dirname, "./dist"),
+    filename: "[name]/index.js",
+  },
+  module: {
+    rules: [
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"],
+      },
+      {
+        test: /\.m?jsx$/,
+        exclude: /(node_modules|bower_components)/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-env"],
+          },
+        },
+      },
+    ],
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      filename: "page1/index.html",
+      chunks: ["page1"],
+      // chunks: ['page1', 'page1/index.css']
+    }),
+    new HtmlWebpackPlugin({
+      filename: "page2/index.html",
+      chunks: ["page2"],
+    }),
+  ],
+};
+```
+
+package.json
+
+```json
+{
+  "name": "react-multi-page-app",
+  "version": "1.0.0",
+  "description": "React 多页面应用",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.12.9",
+    "@babel/preset-env": "^7.12.7",
+    "babel-loader": "^8.2.2",
+    "css-loader": "^5.0.1",
+    "html-webpack-plugin": "^4.5.0",
+    "style-loader": "^2.0.0",
+    "webpack": "^5.9.0",
+    "webpack-cli": "^4.2.0"
+  }
+}
 ```
 
 ## 问题&解答
