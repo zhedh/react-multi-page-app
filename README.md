@@ -292,7 +292,7 @@ package.json
 }
 ```
 
-去 github 查看简易版完整代码[react-multi-page-app](https://github.com/zhedh/react-multi-page-app)
+去 github 查看简易版完整代码[react-multi-page-app](https://github.com/zhedh/react-multi-page-app/tree/simple)
 
 ## 问题&解答
 
