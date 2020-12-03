@@ -306,6 +306,106 @@ package.json
 
 去 github 查看简易版完整代码[react-multi-page-app](https://github.com/zhedh/react-multi-page-app/tree/simple)
 
+## 流程优化
+
+### 分离开发生产环境
+
+**新建 config 目录，并创建配置文件**
+
+```bash
+mkdir config
+cd config
+touch webpack.base.js
+touch webpack.dev.js
+touch webpack.prod.js
+```
+
+```txt
+├── webpack.base.js
+├── webpack.dev.js
+└── webpack.prod.js
+```
+
+**基础配置**
+
+webpack.base.js
+
+```js
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+
+module.exports = {
+  entry: {
+    page1: "./src/pages/page1/index.jsx",
+    page2: "./src/pages/page2/index.jsx",
+  },
+  output: {
+    path: path.resolve(__dirname, "./dist"),
+    filename: "[name]/index.js",
+  },
+  module: {
+    rules: [
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"],
+      },
+      {
+        test: /\.m?jsx$/,
+        exclude: /(node_modules|bower_components)/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ["@babel/preset-env"],
+          },
+        },
+      },
+    ],
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      filename: "page1/index.html",
+      chunks: ["page1"],
+    }),
+    new HtmlWebpackPlugin({
+      filename: "page2/index.html",
+      chunks: ["page2"],
+    }),
+  ],
+};
+```
+
+**开发配置**
+
+- 安装 webpack-merge，用于合并 webpack 配置信息
+
+```bash
+yarn add -D webpack-merge
+```
+
+- 开发配置如下
+
+webpack.dev.js
+
+```js
+const { merge } = require("webpack-merge");
+const path = require("path");
+const base = require("./webpack.base");
+
+module.exports = merge(base, {
+  mode: "development",
+  devtool: "inline-source-map",
+  target: "web",
+  devServer: {
+    open: true,
+    contentBase: path.join(__dirname, "./dist"),
+    historyApiFallback: true, //不跳转
+    inline: true, //实时刷新
+    hot: true, // 开启热更新,
+    port: 8000,
+  },
+});
+```
+
 ## 问题&解答
 
 **Cannot read property 'createSnapshot' of undefined**
