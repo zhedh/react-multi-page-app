@@ -1,3 +1,6 @@
-import './index.css'
+import React from 'react'
+import ReactDOM from 'react-dom'
+import App from './app'
+import './index.scss'
 
-document.querySelector('body').append('PAGE1')
+ReactDOM.render(<App />, document.getElementById('root'))

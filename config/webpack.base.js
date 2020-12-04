@@ -7,7 +7,7 @@ module.exports = {
     page2: './src/pages/page2/index.jsx'
   },
   output: {
-    path: path.resolve(__dirname, './dist'),
+    path: path.resolve(__dirname, '../dist'),
     filename: '[name]/index.js'
   },
   module: {
@@ -25,7 +25,8 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-env']
+            presets: ['@babel/preset-react', '@babel/preset-env'],
+            plugins: ['@babel/plugin-proposal-class-properties']
           }
         }
       }

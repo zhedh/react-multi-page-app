@@ -382,6 +382,12 @@ module.exports = {
 yarn add -D webpack-merge
 ```
 
+- 安装 webpack-dev-server，用于启动开发服务
+
+```bash
+yarn add -D webpack-dev-server
+```
+
 - 开发配置如下
 
 webpack.dev.js
@@ -404,6 +410,148 @@ module.exports = merge(base, {
     port: 8000,
   },
 });
+```
+
+- 配置启动命令
+
+package.json
+
+```json
+{
+  "scripts": {
+    "start": "webpack serve --mode development --env development --config config/webpack.dev.js"
+  },
+}
+```
+
+- 启动
+
+```bash
+yarn start
+```
+
+- 预览
+
+> http://localhost:8000/page1
+> http://localhost:8000/page2
+
+**生产配置**
+
+- 配置如下
+
+webpack.prod.js
+
+```js
+const { merge } = require('webpack-merge')
+const base = require('./webpack.base')
+
+module.exports = merge(base, {
+    mode: 'production',
+})
+```
+
+- 配置打包命令
+
+package.json
+
+```json
+{
+  "scripts": {
+    "start": "webpack serve --mode development --env development --config config/webpack.dev.js",
+    "build": "webpack --config config/webpack.prod.js"
+  },
+}
+```
+
+- 打包
+
+```bash
+yarn build
+```
+
+### 引入React
+
+以page1页面为例
+
+- 约定目录
+
+```txt
+├── page1
+│   ├── app.jsx
+│   ├── index.jsx
+│   └── index.scss
+└── page2
+    ├── app.js
+    ├── index.jsx
+    └── index.scss
+```
+
+- 安装react
+
+```bash
+yarn add react react-dom
+```
+
+- 代码如下
+
+app.js
+
+```js
+import React from 'react'
+
+function App() {
+  return (
+    <div id="page1">
+      我是PAGE1，Hello World
+    </div>
+  )
+}
+
+export default App
+```
+
+index.js
+
+```js
+import React from 'react'
+import ReactDOM from 'react-dom'
+import App from './app'
+import './index.scss'
+
+ReactDOM.render(<App />, document.getElementById('root'))
+```
+
+- 添加react编译
+
+```js
+module.exports = {
+  module: {
+    ...
+    rules: [
+      ...
+      {
+        test: /\.m?jsx$/,
+        exclude: /(node_modules|bower_components)/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-react', '@babel/preset-env'],
+            plugins: ['@babel/plugin-proposal-class-properties']
+          }
+        }
+      }
+    ]
+  },
+  ...
+}
+```
+
+- 省略获取文件后缀
+
+- 安装依赖
+
+```bash
+yarn add @babel/preset-react @babel/plugin-proposal-class-properties
 ```
 
 ## 问题&解答
