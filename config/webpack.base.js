@@ -13,14 +13,16 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.css$/i,
+        test: /\.(sa|sc|c)ss$/,
         use: [
           'style-loader',
-          'css-loader'
-        ],
+          'css-loader',
+          'resolve-url-loader',
+          'sass-loader'
+        ]
       },
       {
-        test: /\.m?jsx$/,
+        test: /\.jsx?$/,
         exclude: /(node_modules|bower_components)/,
         use: {
           loader: 'babel-loader',
@@ -43,4 +45,7 @@ module.exports = {
       chunks: ['page2']
     }),
   ],
+  resolve: {
+    extensions: ['.js', '.jsx', '.json']
+  }
 }

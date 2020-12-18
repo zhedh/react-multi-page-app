@@ -350,7 +350,7 @@ module.exports = {
         use: ["style-loader", "css-loader"],
       },
       {
-        test: /\.m?jsx$/,
+        test: /\.js$/,
         exclude: /(node_modules|bower_components)/,
         use: {
           loader: "babel-loader",
@@ -479,11 +479,11 @@ yarn build
 ├── page1
 │   ├── app.jsx
 │   ├── index.jsx
-│   └── index.scss
+│   └── index.css
 └── page2
     ├── app.js
     ├── index.jsx
-    └── index.scss
+    └── index.css
 ```
 
 - 安装react
@@ -516,21 +516,35 @@ index.js
 import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './app'
-import './index.scss'
+import './index.css'
 
 ReactDOM.render(<App />, document.getElementById('root'))
 ```
 
+index.css
+
+```css
+body{
+  background-color: #ccc;
+}
+
+#page1 {
+  color: rebeccapurple;
+}
+```
+
 - 添加react编译
+
+webpack.base.js
 
 ```js
 module.exports = {
   module: {
-    ...
+    // ...
     rules: [
-      ...
+      // ...
       {
-        test: /\.m?jsx$/,
+        test: /\.jsx?$/,
         exclude: /(node_modules|bower_components)/,
         use: {
           loader: 'babel-loader',
@@ -542,16 +556,81 @@ module.exports = {
       }
     ]
   },
-  ...
+  // ...
 }
 ```
 
 - 省略获取文件后缀
 
+webpack.base.js
+
+```js
+module.exports = {
+  // ...
+  resolve: {
+    extensions: ['.js', '.jsx', '.json']
+  }
+}
+```
+
+- 添加html模版
+
+// TODO
+
 - 安装依赖
 
 ```bash
 yarn add @babel/preset-react @babel/plugin-proposal-class-properties
+```
+
+### 引入Sass
+
+以 page1 为例
+
+- 将 index.css 变更为 index.scss
+
+index.scss
+
+```scss
+body {
+  background-color: #ccc;
+
+  #page1 {
+    color: rebeccapurple;
+  }
+}
+```
+
+- 添加scss编译
+
+webpack.base.js
+
+```js
+module.exports = {
+  // ...
+  module: {
+    // ...
+    rules: [
+      {
+        test: /\.(sa|sc|c)ss$/,
+        use: [
+          'style-loader',
+          'css-loader',
+          'resolve-url-loader',
+          'sass-loader'
+        ]
+      },
+    ]
+  },
+  // ...
+}
+
+```
+
+- 安装依赖
+
+```bash
+yarn add -D resolve-url-loader sass-loader
 ```
 
 ## 问题&解答
