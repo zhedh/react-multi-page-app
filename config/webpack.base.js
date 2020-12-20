@@ -1,11 +1,11 @@
 const path = require('path')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
+const { setEntry, setHtmlPlugin } = require('./webpack.util')
 
 module.exports = {
-  entry: {
-    page1: './src/pages/page1/index.jsx',
-    page2: './src/pages/page2/index.jsx'
-  },
+  entry: setEntry,
   output: {
     path: path.resolve(__dirname, '../dist'),
     filename: '[name]/index.js'
@@ -15,7 +15,8 @@ module.exports = {
       {
         test: /\.(sa|sc|c)ss$/,
         use: [
-          'style-loader',
+          // 'style-loader',
+          MiniCssExtractPlugin.loader,
           'css-loader',
           'resolve-url-loader',
           'sass-loader'
@@ -35,15 +36,16 @@ module.exports = {
     ]
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      filename: 'page1/index.html',
-      chunks: ['page1']
-      // chunks: ['page1', 'page1/index.css']
+    ...setHtmlPlugin(),
+    new CleanWebpackPlugin(),
+    new MiniCssExtractPlugin({
+      filename: '[name]/index.css',
     }),
-    new HtmlWebpackPlugin({
-      filename: 'page2/index.html',
-      chunks: ['page2']
-    }),
+    new OptimizeCSSPlugin({
+      cssProcessorOptions: {
+        safe: true
+      }
+    })
   ],
   resolve: {
     extensions: ['.js', '.jsx', '.json']

@@ -573,9 +573,50 @@ module.exports = {
 }
 ```
 
-- 添加html模版
+- 添加html默认模版，挂载 React DOM
 
-// TODO
+```bash
+cd src
+touch template.html
+```
+
+template.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="root"></div>
+</body>
+
+</html>
+```
+
+webpack.base.js
+
+```js
+module.exports = {
+  plugins: [
+    new HtmlWebpackPlugin({
+      filename: 'page1/index.html',
+      chunks: ['page1'],
+      template: './src/template.html'
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'page2/index.html',
+      chunks: ['page2'],
+      template: './src/template.html'
+    }),
+  ],
+}
+```
 
 - 安装依赖
 
@@ -632,6 +673,268 @@ module.exports = {
 ```bash
 yarn add -D resolve-url-loader sass-loader
 ```
+
+到此，一个完整的 React 多页面应用搭建完成，查看完整代码[react-multi-page-app](https://github.com/zhedh/react-multi-page-app/)
+
+### 入口配置和模版自动匹配
+
+为了不用每次新增页面都要新增入口页面配置，我们将入口配置改成自动匹配
+
+- 入口文件自动匹配
+
+```bash
+cd config
+touch webpack.util.js
+```
+
+webpack.util.js
+
+```js
+const glob = require('glob')
+
+function setEntry() {
+  const files = glob.sync('./src/pages/**/index.jsx')
+  const entry = {}
+  files.forEach(file => {
+    const ret = file.match(/^\.\/src\/pages\/(\S*)\/index\.jsx$/)
+    if (ret) {
+      entry[ret[1]] = {
+        import: file,
+      }
+    }
+  })
+
+  return entry
+}
+
+module.exports = {
+  setEntry,
+}
+```
+
+webpack.base.js
+
+```js
+const { setEntry } = require('./webpack.util')
+
+module.exports = {
+  entry: setEntry,
+}
+```
+
+- 拆分 React 依赖，将 React 单独打包出一个 bundle，作为公共依赖引入各个页面
+
+webpack.util.js
+
+```js
+function setEntry() {
+  const files = glob.sync('./src/pages/**/index.jsx')
+  const entry = {}
+  files.forEach(file => {
+    const ret = file.match(/^\.\/src\/pages\/(\S*)\/index\.jsx$/)
+    if (ret) {
+      entry[ret[1]] = {
+        import: file,
+        dependOn: 'react_vendors',
+      }
+    }
+  })
+
+  // 拆分react依赖
+  entry['react_vendors'] = {
+    import: ['react', 'react-dom'],
+    filename: '_commom/[name].js'
+  }
+
+  return entry
+}
+```
+
+- html 模版自动匹配，并引入react bundle
+
+以 page1 为例子，引入页面自定义模版目录约定如下
+
+```txt
+├── app.jsx
+├── index.html
+├── index.jsx
+└── index.scss
+```
+
+index.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>页面1</title>
+</head>
+
+<body>
+  <div id="root"></div>
+</body>
+
+</html>
+```
+
+如果匹配不到自定义模版，会匹配默认模版，配置如下：
+
+webpack.util.js
+
+```js
+function getTemplate(name) {
+  const files = glob.sync(`./src/pages/${name}/index.html`)
+  if (files.length > 0) {
+    return files[0]
+  }
+  return './src/template.html'
+}
+
+function setHtmlPlugin() {
+  const files = glob.sync('./src/pages/**/index.jsx')
+  const options = []
+  files.forEach(file => {
+    const ret = file.match(/^\.\/src\/pages\/(\S*)\/index\.jsx$/)
+    if (ret) {
+      const name = ret[1]
+      options.push(new HtmlWebpackPlugin({
+        filename: `${name}/index.html`,
+        template: getTemplate(name),
+        chunks: ['react_vendors', name,]
+      }))
+    }
+  })
+  return options
+}
+
+module.exports = {
+  setEntry,
+  setHtmlPlugin
+}
+```
+
+webpack.base.js
+
+```js
+const { setEntry, setHtmlPlugin } = require('./webpack.util')
+
+module.exports = {
+  plugins: [
+    ...setHtmlPlugin(),
+  ]
+}
+```
+
+- 安装相关依赖
+
+```bash
+yarn add -D html-webpack-plugin glob
+```
+
+### 配置优化
+
+- 清除之前打包文件
+
+webpack.base.js
+
+```js
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+
+module.exports = {
+  plugins: [
+    new CleanWebpackPlugin(),
+  ]
+}
+```
+
+```bash
+yarn add -D clean-webpack-plugin
+```
+
+- 分离并压缩 css
+
+webpack.base.js
+
+```js
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
+
+module.exports = {
+   module: {
+    rules: [
+      {
+        test: /\.(sa|sc|c)ss$/,
+        use: [
+          // 'style-loader',
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          'resolve-url-loader',
+          'sass-loader'
+        ]
+      },
+    ]
+  },
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: '[name]/index.css',
+    }),
+    new OptimizeCSSPlugin({
+      cssProcessorOptions: {
+        safe: true
+      }
+    })
+  ]
+}
+```
+
+html 中注入 css
+webpack.util.js
+
+```js
+function setHtmlPlugin() {
+  const files = glob.sync('./src/pages/**/index.jsx')
+  const options = []
+  files.forEach(file => {
+    const ret = file.match(/^\.\/src\/pages\/(\S*)\/index\.jsx$/)
+    if (ret) {
+      const name = ret[1]
+      options.push(new HtmlWebpackPlugin({
+        filename: `${name}/index.html`,
+        template: getTemplate(name),
+        chunks: ['react_vendors', name, '[name]/index.css']
+      }))
+    }
+  })
+  return options
+}
+```
+
+```bash
+yarn add -D mini-css-extract-plugin optimize-css-assets-webpack-plugin
+```
+
+```
+
+在 package.json 配置 sideEffects，避免 webpack Tree Shaking 移除.css、.scss 文件
+package.json
+
+​```json
+{
+  "sideEffects": [
+    "*.css",
+    "*.scss"
+  ]
+}
+```
+
+至此，项目配置完成
+
+## 项目源码
+
+完整代码[react-multi-page-app](https://github.com/zhedh/react-multi-page-app/)，喜欢给个star
 
 ## 问题&解答
 
