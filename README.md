@@ -17,16 +17,30 @@ react-multi-page-app 是一个基于 webpack5 搭建的 react 多页面应用。
 
 ## 快速上手
 
+**clone**
+
+```
+git clone https://github.com/zhedh/react-multi-page-app.git
+```
+
 **安装依赖**
 
 ```bash
 yarn install
 ```
 
+**开发**
+
+```bash
+yarn start
+```
+
+> http://localhost:8000/page1
+
 **打包**
 
 ```bash
-webpack
+yarn build
 ```
 
 ## 简易搭建流程
